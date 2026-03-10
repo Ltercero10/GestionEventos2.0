@@ -148,15 +148,15 @@ export default function AdminEventos({ user }) {
             />
 
             <select
-  value={form.ubicacion}
-  onChange={(e) => onChange("ubicacion", e.target.value)}
+            value={form.ubicacion}
+           onChange={(e) => onChange("ubicacion", e.target.value)}
 >
-  <option value="">Seleccionar ubicación</option>
-  <option value="Auditorio">Auditorio</option>
-  <option value="Sala 1">Sala 1</option>
-  <option value="Sala 2">Sala 2</option>
-  <option value="Sala de conferencias">Sala de conferencias</option>
-</select>
+           <option value="">Seleccionar ubicación</option>
+          <option value="Auditorio">Auditorio</option>
+           <option value="Sala 1">Sala 1</option>
+          <option value="Sala 2">Sala 2</option>
+          <option value="Sala de conferencias">Sala de conferencias</option>
+          </select>
 
             <textarea
               placeholder="Descripción"

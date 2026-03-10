@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
+import { formatFecha } from "../utils/dateformat";
+
 
 export default function Eventos({ user }) {
   const [eventos, setEventos] = useState([]);
@@ -85,8 +87,8 @@ export default function Eventos({ user }) {
             </p>
 
             <p style={{ margin: "6px 0" }}>
-              <b>Inicio:</b> {String(e.fecha_inicio)} <br />
-              <b>Fin:</b> {String(e.fecha_fin)}
+              <b>Inicio:</b> {formatFecha(e.fecha_inicio)} <br />
+              <b>Fin:</b> {formatFecha(e.fecha_fin)}
             </p>
 
             <p style={{ margin: "6px 0" }}>
