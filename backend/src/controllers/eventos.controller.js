@@ -84,14 +84,44 @@ async function obtenerEvento(req, res) {
   }
 }
 
+
+
 // UPDATE (ADMIN)
 async function actualizarEvento(req, res) {
   try {
     const { titulo, descripcion, ubicacion, fecha_inicio, fecha_fin, cupo, estado } = req.body;
 
+    // Verificar que el evento exista
     const [exist] = await pool.query("SELECT id FROM eventos WHERE id=?", [req.params.id]);
     if (exist.length === 0) return res.status(404).json({ ok: false, msg: "Evento no encontrado" });
 
+    // Validar campos requeridos si se están actualizando
+    if ((titulo !== undefined && !titulo) || (fecha_inicio !== undefined && !fecha_inicio) || (fecha_fin !== undefined && !fecha_fin)) {
+      return res.status(400).json({ ok: false, msg: "titulo, fecha_inicio y fecha_fin son requeridos" });
+    }
+
+    // Validar conflicto de horario si se actualiza ubicacion o fechas
+    if (ubicacion || fecha_inicio || fecha_fin) {
+      const [conflicto] = await pool.query(
+        `SELECT id, titulo, fecha_inicio, fecha_fin
+         FROM eventos
+         WHERE ubicacion = COALESCE(?, ubicacion)
+           AND estado = 'ACTIVO'
+           AND id != ?
+           AND (? < fecha_fin AND ? > fecha_inicio)
+         LIMIT 1`,
+        [ubicacion, req.params.id, fecha_inicio, fecha_fin]
+      );
+
+      if (conflicto.length > 0) {
+        return res.status(400).json({
+          ok: false,
+          msg: "Ya existe un evento en esta ubicación en ese horario"
+        });
+      }
+    }
+
+    // Actualizar evento
     await pool.query(
       `UPDATE eventos SET
         titulo = COALESCE(?, titulo),
