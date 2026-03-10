@@ -6,10 +6,15 @@ export default function Login({ onLogin }) {
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const doLogin = async () => {
+    const cleanEmail = email.trim().toLowerCase();
+
     const { data } = await api.post("/auth/login", { email, password });
     const token = data.token;
     const user = data.user;
@@ -21,6 +26,8 @@ export default function Login({ onLogin }) {
   };
 
   const doRegister = async () => {
+    const cleanNombre = nombre.trim();
+    const cleanEmail = email.trim().toLowerCase();
     await api.post("/auth/register", { nombre, email, password });
     await doLogin();
   };
@@ -31,8 +38,39 @@ export default function Login({ onLogin }) {
     setLoading(true);
 
     try {
-      if (!email || !password) throw new Error("Email y contraseña son requeridos");
-      if (mode === "register" && !nombre) throw new Error("Nombre es requerido");
+      const cleanNombre = nombre.trim();
+      const cleanEmail = email.trim().toLowerCase();
+      const cleanPassword = password.trim();
+
+      //validacion correo
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!emailRegex.test(cleanEmail)) {
+        throw new Error("Ingrese un correo electrónico válido");
+      }
+
+
+      //validacion contraseña
+      if (password.length < 6)
+        throw new Error("La contraseña debe tener al menos 6 caracteres");
+
+
+      if (mode === "register") {
+        if (!nombre) throw new Error("Nombre es requerido");
+
+        if (cleanNombre.length < 3) {
+          throw new Error("El nombre debe tener al menos 3 caracteres");
+        }
+
+        if (!confirmPassword.trim()) {
+          throw new Error("Debe confirmar la contraseña");
+        }
+
+        if (password !== confirmPassword) {
+          throw new Error("Las contraseñas no coinciden");
+        }
+      }
+
 
       if (mode === "register") await doRegister();
       else await doLogin();
@@ -40,6 +78,18 @@ export default function Login({ onLogin }) {
       setMsg("❌ " + (err.response?.data?.msg || err.message));
       setLoading(false);
     }
+  };
+
+  const switchMode = () => {
+    setMode(mode === "login" ? "register" : "login");
+    setNombre("");
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setMsg("");
+    setLoading(false);
+    setShowPassword(false);
+    setShowConfirmPassword(false);
   };
 
   return (
@@ -88,7 +138,7 @@ export default function Login({ onLogin }) {
                   : "Registrate como cliente para inscribirte a eventos."}
               </div>
 
-             
+
               <form onSubmit={submit}>
                 {mode === "register" && (
                   <div className="auth-field">
@@ -97,7 +147,11 @@ export default function Login({ onLogin }) {
                       className="auth-input"
                       placeholder="Tu nombre completo"
                       value={nombre}
-                      onChange={(e) => setNombre(e.target.value)}
+                      disabled={loading}
+                      onChange={(e) => {
+                        setNombre(e.target.value);
+                        setMsg("");
+                      }}
                     />
                   </div>
                 )}
@@ -108,38 +162,107 @@ export default function Login({ onLogin }) {
                     className="auth-input"
                     placeholder="correo@ejemplo.com"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={loading}
+                    onChange={(e) => {
+                      setEmail(e.target.value)
+                      setMsg("");
+
+                    }}
                   />
                 </div>
 
                 <div className="auth-field">
                   <label>Contraseña</label>
-                  <input
-                    className="auth-input"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
+                  <div style={{ position: "relative" }}>
+                    <input
+                      className="auth-input"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={password}
+                      disabled={loading}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        setMsg("");
+                      }}
+                      style={{ paddingRight: "110px" }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: "absolute",
+                        right: "14px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        background: "none",
+                        border: "none",
+                        color: "#6c4cff",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      {showPassword ? "Ocultar" : "Mostrar"}
+                    </button>
+                  </div>
                 </div>
 
-                <div className="auth-row">
-                <span style={{ fontSize: 12, color: "rgba(11,18,32,.65)" }}>
-                    {mode === "login" ? "¿No tenés cuenta?" : "¿Ya tenés cuenta?"}
-                </span>
 
-                <span
+
+                {mode === "register" && (
+                  <div className="auth-field">
+                    <label>Confirmar contraseña</label>
+                    <div style={{ position: "relative" }}>
+                      <input
+                        className="auth-input"
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        value={confirmPassword}
+                        disabled={loading}
+                        onChange={(e) => {
+                          setConfirmPassword(e.target.value);
+                          setMsg("");
+                        }}
+                        style={{ paddingRight: "110px" }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        style={{
+                          position: "absolute",
+                          right: "14px",
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          background: "none",
+                          border: "none",
+                          color: "#6c4cff",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                      >
+                        {showConfirmPassword ? "Ocultar" : "Mostrar"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="auth-row">
+                  <span style={{ fontSize: 12, color: "rgba(11,18,32,.65)" }}>
+                    {mode === "login" ? "¿No tenés cuenta?" : "¿Ya tenés cuenta?"}
+                  </span>
+
+                  <span
                     className="auth-link"
                     onClick={() => {
-                    setMode(mode === "login" ? "register" : "login");
-                    setNombre("");
-                    setEmail("");
-                    setPassword("");
-                    setMsg("");
+                      setMode(mode === "login" ? "register" : "login");
+                      setNombre("");
+                      setEmail("");
+                      setPassword("");
+                      setConfirmPassword("");
+                      setMsg("");
                     }}
-                >
+                  >
                     {mode === "login" ? "Crear cuenta" : "Regresar"}
-                </span>
+                  </span>
                 </div>
 
                 <button className="auth-primary" disabled={loading}>
@@ -155,7 +278,7 @@ export default function Login({ onLogin }) {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }
