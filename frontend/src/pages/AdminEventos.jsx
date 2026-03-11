@@ -127,11 +127,11 @@ export default function AdminEventos({ user }) {
 
   return (
     <div style={{ marginTop: 20 }}>
-      <h3>Panel Eventos</h3>
+<h3>Panel Eventos</h3>
 
-      <button onClick={cargar} style={{ padding: 8, marginBottom: 10 }}>
-        Recargar
-      </button>
+<button onClick={cargar} style={{ padding: 8, marginBottom: 10 }}>
+  Recargar
+</button>
 
       {msg && <p>{msg}</p>}
 

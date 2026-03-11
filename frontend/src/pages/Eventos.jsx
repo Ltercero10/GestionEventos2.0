@@ -4,6 +4,8 @@ import { api } from "../api";
 export default function Eventos({ user }) {
   const [eventos, setEventos] = useState([]);
   const [msg, setMsg] = useState("");
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  
 
   // 👇 recursos por evento (cache) y cuál está abierto
   const [recursosPorEvento, setRecursosPorEvento] = useState({});

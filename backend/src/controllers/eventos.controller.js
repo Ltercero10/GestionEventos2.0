@@ -22,6 +22,8 @@ async function crearEvento(req, res) {
   }
 }
 
+
+
 // READ LIST (público)
 async function listarEventos(req, res) {
   try {

@@ -48,10 +48,34 @@ async function actualizarRecurso(req, res) {
 
 async function eliminarRecurso(req, res) {
   try {
-    await pool.query("DELETE FROM recursos WHERE id=?", [req.params.id]);
-    return res.json({ ok:true, msg:"Recurso eliminado" });
+
+    const id = req.params.id;
+
+    // eliminar relaciones con eventos
+    await pool.query(
+      "DELETE FROM evento_recursos WHERE recurso_id=?",
+      [id]
+    );
+
+    // eliminar recurso
+    await pool.query(
+      "DELETE FROM recursos WHERE id=?",
+      [id]
+    );
+
+    return res.json({
+      ok: true,
+      msg: "Recurso eliminado correctamente"
+    });
+
   } catch (err) {
-    return res.status(500).json({ ok:false, msg:"Error eliminando recurso", error: err.message });
+
+    return res.status(500).json({
+      ok: false,
+      msg: "Error eliminando recurso",
+      error: err.message
+    });
+
   }
 }
 
