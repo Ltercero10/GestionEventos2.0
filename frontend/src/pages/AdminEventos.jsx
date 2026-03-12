@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
 
+//Eso hace que las fechas no permitan años anteriores al actual.
+const currentYear = new Date().getFullYear();
+const minDate = `${currentYear}-01-01T00:00`;
+
 const emptyForm = {
   id: null,
   titulo: "",
   descripcion: "",
   ubicacion: "",
   fecha_inicio: "", // datetime-local: YYYY-MM-DDTHH:MM
-  fecha_fin: "",    // datetime-local: YYYY-MM-DDTHH:MM
-  cupo: 0,
+  fecha_fin: "", // datetime-local: YYYY-MM-DDTHH:MM
+  cupo: 5, //Para que empiece desde 5.
   estado: "ACTIVO",
 };
 
@@ -52,7 +56,21 @@ export default function AdminEventos({ user }) {
     if (user.rol === "ADMIN") cargar();
   }, []);
 
-  const onChange = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+  //Validación del campo cupo en onChange
+  const onChange = (k, v) => {
+    if (k === "cupo") {
+      if (v === "") {
+        setForm((p) => ({ ...p, [k]: "" }));
+        return;
+      }
+
+      if (!/^\d+$/.test(v)) {
+        return;
+      }
+    }
+
+    setForm((p) => ({ ...p, [k]: v }));
+  };
 
   const limpiar = () => setForm(emptyForm);
 
@@ -75,9 +93,22 @@ export default function AdminEventos({ user }) {
         return setMsg("❌ titulo, fecha_inicio y fecha_fin son requeridos");
       }
 
+      //Agregué estas validaciones antes de guardar:
+      if (new Date(form.fecha_inicio).getFullYear() < currentYear) {
+        return setMsg(`❌ La fecha inicio no puede ser menor al año ${currentYear}`);
+      }
+
+      if (new Date(form.fecha_fin).getFullYear() < currentYear) {
+        return setMsg(`❌ La fecha fin no puede ser menor al año ${currentYear}`);
+      }
+
       // Validación rápida: fin > inicio
       if (new Date(form.fecha_fin) <= new Date(form.fecha_inicio)) {
         return setMsg("❌ La fecha fin debe ser mayor que la fecha inicio");
+      }
+
+      if (Number(form.cupo) < 5) {
+        return setMsg("❌ El cupo no puede ser menor a 5");
       }
 
       if (form.id) {
@@ -117,7 +148,7 @@ export default function AdminEventos({ user }) {
       ubicacion: e.ubicacion || "",
       fecha_inicio: toDatetimeLocal(e.fecha_inicio),
       fecha_fin: toDatetimeLocal(e.fecha_fin),
-      cupo: e.cupo ?? 0,
+      cupo: e.cupo ?? 5,
       estado: e.estado || "ACTIVO",
     });
     setMsg("✏️ Editando evento ID " + e.id);
@@ -148,15 +179,15 @@ export default function AdminEventos({ user }) {
             />
 
             <select
-            value={form.ubicacion}
-           onChange={(e) => onChange("ubicacion", e.target.value)}
->
-           <option value="">Seleccionar ubicación</option>
-          <option value="Auditorio">Auditorio</option>
-           <option value="Sala 1">Sala 1</option>
-          <option value="Sala 2">Sala 2</option>
-          <option value="Sala de conferencias">Sala de conferencias</option>
-          </select>
+              value={form.ubicacion}
+              onChange={(e) => onChange("ubicacion", e.target.value)}
+            >
+              <option value="">Seleccionar ubicación</option>
+              <option value="Auditorio">Auditorio</option>
+              <option value="Sala 1">Sala 1</option>
+              <option value="Sala 2">Sala 2</option>
+              <option value="Sala de conferencias">Sala de conferencias</option>
+            </select>
 
             <textarea
               placeholder="Descripción"
@@ -169,6 +200,7 @@ export default function AdminEventos({ user }) {
             <input
               type="datetime-local"
               value={form.fecha_inicio}
+              min={minDate}
               onChange={(e) => onChange("fecha_inicio", e.target.value)}
             />
 
@@ -176,6 +208,7 @@ export default function AdminEventos({ user }) {
             <input
               type="datetime-local"
               value={form.fecha_fin}
+              min={minDate}
               onChange={(e) => onChange("fecha_fin", e.target.value)}
             />
 
@@ -184,9 +217,10 @@ export default function AdminEventos({ user }) {
               type="number"
               placeholder="Cupo"
               value={form.cupo}
+              min="5"
               onChange={(e) => onChange("cupo", e.target.value)}
             />
-            
+
             <label style={{ fontSize: 13, opacity: 0.8 }}>Estado</label>
             <select value={form.estado} onChange={(e) => onChange("estado", e.target.value)}>
               <option value="ACTIVO">ACTIVO</option>
