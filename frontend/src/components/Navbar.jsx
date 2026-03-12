@@ -8,7 +8,7 @@ export default function Navbar({ user, logout }) {
         </div>
 
         <div className="nav-right">
-          <span className="muted">{user.nombre} · {user.rol}</span>
+          <span className="muted">{user.nombre}</span>
           <button className="btn-secondary" onClick={logout}>Salir</button>
         </div>
       </div>
